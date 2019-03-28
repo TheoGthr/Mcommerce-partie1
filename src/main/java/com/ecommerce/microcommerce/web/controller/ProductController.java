@@ -2,6 +2,7 @@ package com.ecommerce.microcommerce.web.controller;
 
 import com.ecommerce.microcommerce.dao.ProductDao;
 import com.ecommerce.microcommerce.model.Product;
+import com.ecommerce.microcommerce.web.exceptions.ProduitGratuitException;
 import com.ecommerce.microcommerce.web.exceptions.ProduitIntrouvableException;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
@@ -31,14 +32,12 @@ public class ProductController {
 
 
     //Récupérer la liste des produits
-
     @RequestMapping(value = "/Produits", method = RequestMethod.GET)
-
     public MappingJacksonValue listeProduits() {
 
         Iterable<Product> produits = productDao.findAll();
 
-        SimpleBeanPropertyFilter monFiltre = SimpleBeanPropertyFilter.serializeAllExcept("prixAchat");
+        SimpleBeanPropertyFilter monFiltre = SimpleBeanPropertyFilter.serializeAllExcept("prixAchat", "marge");
 
         FilterProvider listDeNosFiltres = new SimpleFilterProvider().addFilter("monFiltreDynamique", monFiltre);
 
@@ -75,6 +74,7 @@ public class ProductController {
 
         if (productAdded == null)
             return ResponseEntity.noContent().build();
+        else if(productAdded.getPrix() == 0) throw new ProduitGratuitException("Le produit cree ne peut etre gratuit.");
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
